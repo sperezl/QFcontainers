@@ -1,0 +1,32 @@
+BootStrap: yum
+OSVersion: 7
+MirrorURL: http://mirror.centos.org/centos-%{OSVERSION}/%{OSVERSION}/os/$basearch/
+Include: yum
+
+%setup
+  cp /data/singularity/cudnn-9.0-linux-x64-v7.1.tgz $SINGULARITY_ROOTFS
+
+%test
+  exec /usr/bin/python3 --version
+
+%environment
+  export CUDA_ROOT=/usr/local/cuda
+  export LD_LIBRARY_PATH=$CUDA_ROOT/lib64
+  export PATH=$CUDA_ROOT/bin:$PATH
+
+%runscript
+  echo "Container with Tensorflow 1.9.0 for GPU"
+  exec "$@"
+
+%post
+  yum -y install epel-release
+  yum -y install wget
+  wget https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-repo-rhel7-10.0.130-1.x86_64.rpm
+  rpm -i cuda-repo-*.rpm
+  yum -y install tar gzip cuda-9-0 python34-devel python34-pip libgomp cuda-runtime-9-0
+  ln -s /usr/local/cuda-9.0 /usr/local/cuda
+  tar -xf /cudnn-9.0-linux-x64-v7.1.tgz -C /usr/local
+  rm /cudnn-9.0-linux-x64-v7.1.tgz /cuda-repo-rhel7-10.0.130-1.x86_64.rpm
+  yum clean all
+  pip3 install --upgrade pip
+  pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.9.0-cp34-cp34m-linux_x86_64.whl
