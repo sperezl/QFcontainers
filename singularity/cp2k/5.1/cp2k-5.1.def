@@ -1,0 +1,10 @@
+BootStrap:library
+From:ubuntu:18.10
+
+%runscript
+    echo "Container with Cp2k v5.1"
+    exec "$@"
+
+%post
+    apt update && apt upgrade -y
+    apt install -y cp2k cp2k-data
